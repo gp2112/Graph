@@ -1,7 +1,13 @@
+# -*- coding: UTF-8 -*-
+
 from pprint import pprint
 from collections import deque
 import random
 import math
+
+WHITE = 0
+GREY = 1
+BLACK = 2
 
 class Vertice:
 
@@ -10,15 +16,25 @@ class Vertice:
 			adj = []
 		self.adj = adj
 		self.label = label
+		self.cor = WHITE
+		self.pi = None
 
 	def __repr__(self):
 		return str(self.label)
 
 class Graph:
 
-	def __init__(self, adj_matrix):
+	def __init__(self, adj_matrix, direc=False):
 		self.adj_matrix = adj_matrix
 		self.adj_list = self.__get_adj_list()
+		self.dir = direc
+		self.time=0
+
+	def __repr__(self):
+		return self.adj_matrix
+
+	def __str__(self):
+		return str(self.adj_matrix)
 
 	# cria lista de adjacência com base na matriz de adjacencia
 	def __get_adj_list(self):
@@ -38,10 +54,8 @@ class Graph:
 			s = self.adj_list[s-1]
 		for u in self.adj_list:
 			if u != s:
-				u.cor = 'branco'
 				u.d = math.inf
-				u.pi = None
-		s.cor = 'cinza'
+		s.cor = GREY
 		s.d = 0
 		s.pi = None
 		q = deque()
@@ -49,12 +63,48 @@ class Graph:
 		while len(q) > 0:
 			u = q.popleft()
 			for v in self.adj_list[u.label-1].adj:
-				if v.cor == 'branco':
-					v.cor = 'cinza'
+				if v.cor == WHITE:
+					v.cor = GREY
 					v.d = u.d + 1
 					v.pi = u
 					q.append(v)
-			u.cor = 'preto'
+			u.cor = BLACK
+
+
+	def __dfs_visit(self, u, count):
+		count+=1
+		self.time += 1
+		u.d = self.time
+		u.cor = GREY
+		for v in u.adj:
+			if v.cor == WHITE:
+				v.pi = u
+				count = self.__dfs_visit(v, count)
+		u.cor = BLACK
+		self.time += 1
+		u.f = self.time
+		return count
+
+
+	def dfs(self):
+		for u in self.adj_list:
+			if u.cor == WHITE:
+				self.__dfs_visit(u, 0)
+
+	# retorna o número de componentes do grafo com DFS
+	def coponentes(self):
+		c = []
+		for u in self.adj_list:
+			u.pi = None
+		c.append(self.adj_list[0])
+		self.adj_list[0].count = self.__dfs_visit(self.adj_list[0], 0)
+		for v in self.adj_list:
+			if v.cor != BLACK:
+				v.count = self.__dfs_visit(v, 0)
+				c.append(v)
+		return c
+
+
 
 	# print recursively the path between source and dest
 	# returns True if path exists, False if doesn't
@@ -126,7 +176,10 @@ def read_pajek(file, dists=None):
 	return Graph(adj_matrix=matrix)
 
 if __name__ == '__main__':
-	pass
-
-
-
+	fname = input()
+	g = read_pajek(fname)
+	componentes = g.coponentes()
+	componentes.sort(reverse=True, key=lambda c: c.count)
+	print(len(componentes))
+	for componente in componentes:
+		print(componente.count)
