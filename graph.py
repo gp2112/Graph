@@ -2,6 +2,7 @@
 
 from pprint import pprint
 from collections import deque
+import minheap
 import random
 import math
 
@@ -22,16 +23,23 @@ class Vertice:
 	def __repr__(self):
 		return str(self.label)
 
+# Graph's data structure and algorithms 
+# implementation by Guilherme Paixão
+#			   2021
+#
+
 class Graph:
 
-	def __init__(self, adj_matrix, direc=False):
+	def __init__(self, adj_matrix, dists=None, direc=False):
 		self.adj_matrix = adj_matrix
 		self.adj_list = self.__get_adj_list()
 		self.dir = direc
+		self.dists = dists
 		self.time=0
+		self.has_cycle = False
 
 	def __repr__(self):
-		return self.adj_matrix
+		return str(self.adj_matrix)
 
 	def __str__(self):
 		return str(self.adj_matrix)
@@ -47,6 +55,8 @@ class Graph:
 					adj1[i].adj.append(adj1[j])
 
 		return adj1
+
+	
 
 	# do BFS with a vertex S as origin
 	def __bfs(self, s):
@@ -76,10 +86,21 @@ class Graph:
 		self.time += 1
 		u.d = self.time
 		u.cor = GREY
+		i = 0 #count grey
+
+		# Verifica se possui cíclo
+		# possui ciclo se tiver i=2, ou dois cinzas
+		for v in u.adj:
+			if v.cor == GREY: i+=1
+			if i == 2:
+				self.has_cycle = True
+				break
+
 		for v in u.adj:
 			if v.cor == WHITE:
 				v.pi = u
 				count = self.__dfs_visit(v, count)
+
 		u.cor = BLACK
 		self.time += 1
 		u.f = self.time
@@ -92,7 +113,7 @@ class Graph:
 				self.__dfs_visit(u, 0)
 
 	# retorna o número de componentes do grafo com DFS
-	def coponentes(self):
+	def componentes(self):
 		c = []
 		for u in self.adj_list:
 			u.pi = None
@@ -104,6 +125,34 @@ class Graph:
 				c.append(v)
 		return c
 
+	def weight(self, v, u):
+		return self.adj_matrix[v.label-1][u.label-1]
+
+	def dijkstra(self, source):
+		heap = minheap.MinHeap(comp=lambda x, y: x[1] < y[1])
+		d, visited = [], []
+		for v in self.adj_list:
+			d.append(math.inf)
+			v.pi = None
+			visited.append(False)
+			
+		d[source.label-1] = 0
+		
+		heap.insert((source, 0))
+
+		while len(heap) > 0:
+			(u, min_val) = heap.min_extract()
+			if visited[u.label-1]:
+				continue
+			visited[u.label-1] = True
+			for v in u.adj:
+				if d[v.label-1] > min_val + self.weight(u, v):
+					d[v.label-1] = min_val + self.weight(u, v)
+	
+					v.pi = u
+					heap.insert((v, d[v.label-1]))
+
+		return d
 
 
 	# print recursively the path between source and dest
@@ -131,6 +180,9 @@ class Graph:
 		self.__bfs(source)
 		return dest.d
 
+
+
+
 # returns a random graph using Erdos algorithm
 # n is the number of vertex and p is probability 
 def erdos_graph(n, p):
@@ -147,7 +199,7 @@ def erdos_graph(n, p):
 	return Graph(matrix)
 
 # read a graph from .pajek file
-def read_pajek(file, dists=None):
+def read_pajek(file, directed=False):
 	if type(file) is str:
 		file = open(file, 'r')
 
@@ -161,25 +213,23 @@ def read_pajek(file, dists=None):
 
 	# cria os vértices
 	matrix = [[0 for j in range(v_num)] for i in range(v_num)]
-	
+
 	line = file.readline().strip().split(' ')
 	while len(line) > 1:
 		edge = (int(line[0])-1, int(line[1])-1)
 
-		matrix[edge[0]][edge[1]] = 1
-		matrix[edge[1]][edge[0]] = 1
+		# if has weight
+		if len(line) == 3:
+			matrix[edge[0]][edge[1]] = int(line[2])
+			if not directed:
+				matrix[edge[1]][edge[0]] = int(line[2])
+		else:
+			matrix[edge[0]][edge[1]] = 1
+			if not directed:
+				matrix[edge[1]][edge[0]] = 1
 
 		line = file.readline().strip().split(' ')
 
 	file.close()
 
 	return Graph(adj_matrix=matrix)
-
-if __name__ == '__main__':
-	fname = input()
-	g = read_pajek(fname)
-	componentes = g.coponentes()
-	componentes.sort(reverse=True, key=lambda c: c.count)
-	print(len(componentes))
-	for componente in componentes:
-		print(componente.count)
