@@ -138,7 +138,7 @@ if __name__ == '__main__':
 
 	vals = [random.randint(0, 10000) for _ in range(int(sys.argv[1]))]
 
-	heap = MinHeap(random.randint(0, 10000))
+	heap = MinHeap()
 	#print(vals)
 	for val in vals:
 		#print('inserting ', val)
