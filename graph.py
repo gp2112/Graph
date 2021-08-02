@@ -39,10 +39,20 @@ class Graph:
 		self.has_cycle = False
 
 	def __repr__(self):
-		return str(self.adj_matrix)
+		s = ''
+		for row in self.adj_matrix:
+			for item in row:
+				s += str(item)+' '
+			s+='\n'
+		return s
 
 	def __str__(self):
-		return str(self.adj_matrix)
+		s = ''
+		for row in self.adj_matrix:
+			for item in row:
+				s += str(item)+' '
+			s+='\n'
+		return s
 
 	# cria lista de adjacência com base na matriz de adjacencia
 	def __get_adj_list(self):
@@ -129,6 +139,7 @@ class Graph:
 		return self.adj_matrix[v.label-1][u.label-1]
 
 	def dijkstra(self, source):
+
 		heap = minheap.MinHeap(comp=lambda x, y: x[1] < y[1])
 		d, visited = [], []
 		for v in self.adj_list:
@@ -154,31 +165,49 @@ class Graph:
 
 		return d
 
+	def prim(self, source):
 
-	# print recursively the path between source and dest
-	# returns True if path exists, False if doesn't
-	def __recur_min_path(self, source, dest):
-		if dest.d == math.inf:
-			return False
+		keys = {}
 
-		print(dest)
-		if source == dest:
-			return True
-		return self.__recur_min_path(source, dest.pi)
+		for v in self.adj_list:
+			keys[v] = math.inf
+			v.pi = None
 
-	# imprime o caminho mínimo entre os vértices source e dest
-	def min_path(self, source, dest):
-		source = self.adj_list[source-1]
-		dest = self.adj_list[dest-1]
-		self.__bfs(source)
-		return self.__recur_min_path(source, dest)
+		heap = minheap.MinHeap(comp=lambda x, y: x[1] < y[1], item_repr=lambda x: x[0])
+		
+		keys[source] = 0
+		visited = set()
+		
+		for v in self.adj_list:
+			heap.insert((v, keys[v]))
 
-	# retorna a distância do menor caminho entre os vértices source e dest
-	def dist(self, source, dest):
-		source = self.adj_list[source-1]
-		dest = self.adj_list[dest-1]
-		self.__bfs(source)
-		return dest.d
+		while len(heap) > 0:
+			(v, key) = heap.min_extract()
+			
+			if v in visited:
+				continue
+
+			visited.add(v)
+
+			for u in v.adj:
+				if u in visited:
+					continue
+				if u in heap and self.weight(u, v) < keys[u]:
+					keys[u] = self.weight(u, v)
+					u.pi = v
+					heap.insert((u, keys[u]))
+		
+		# cria grafo da arvore minima geradora obtida e soma as arestas
+		key_sum = 0
+		new_graph_adj = [[0 for _ in self.adj_matrix] for _ in self.adj_matrix]
+		for v in self.adj_list:
+			if v.pi is not None:
+				new_graph_adj[v.pi.label-1][v.label-1] = keys[v]
+			key_sum += keys[v]			
+
+		return Graph(new_graph_adj), key_sum
+
+
 
 
 

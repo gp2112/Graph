@@ -2,8 +2,11 @@
 #
 #	Min-Heap Implementation in Python
 #		by Guilherme Paixão
-#
-#
+#	
+#	Insert: O(logn)
+#	Extract Min: O(logn)
+#	Check if Item in MinHeap: O(1)
+#	Search Min: O(1) 
 
 
 def weight(root):
@@ -92,14 +95,19 @@ class Node:
 
 class MinHeap:
 
-	def __init__(self, comp = lambda x, y: x < y):
+	def __init__(self, item_repr=lambda x: x, comp = lambda x, y: x < y):
 		self.root = None
 		self.comp = comp
+		self.elements = {}
+		self.item_repr = item_repr
 
 	def __len__(self):
 		if self.root is None:
 			return 0
 		return self.root.weight+1
+
+	def __contains__(self, item):
+		return item in self.elements
 
 	def print(self):
 		print('root: ', end='')
@@ -112,6 +120,10 @@ class MinHeap:
 		self.root.heapfy_down(self.comp)
 
 	def insert(self, item):
+		if self.item_repr(item) not in self.elements:
+			self.elements[self.item_repr(item)] = 0
+		self.elements[self.item_repr(item)] += 1
+
 		if self.root is None:
 			self.root = Node(item)
 		else:
@@ -128,6 +140,11 @@ class MinHeap:
 		last = self.root.extract_last()
 		self.root.item = last
 		self.root.heapfy_down(self.comp)
+
+		self.elements[self.item_repr(min_)] -= 1
+		if self.elements[self.item_repr(min_)] == 0:
+			self.elements.pop(self.item_repr(min_))
+
 		return min_
 
 
