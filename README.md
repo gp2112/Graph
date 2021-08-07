@@ -1,5 +1,5 @@
 ## About
-A graph implementation in Python for Graphs class
+A graph implementation in Python for Graph's class
 
 ## How to use?
 
