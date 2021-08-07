@@ -4,8 +4,7 @@
 
 import graph
 
-
-#vs = []
+# this program prints all nodes that have both parents that are directed descendents by vertex 1
 
 def transverse_matrix(matrix):
 	for i in range(len(matrix)):
@@ -15,15 +14,14 @@ def transverse_matrix(matrix):
 			matrix[j][i] = aux
 
 
-# grafo de pais para filhos
+# parents-to-child graph 
 g = graph.read_pajek(input(), directed=True)
-#print(g)
+
 
 transverse_matrix(g.adj_matrix)
 
-# grafo de filhos para pais
+# child-to-parents graph
 aux_g = graph.Graph(g.adj_matrix, direc=True)
-#print(aux_g)
 
 g.dfs(g.adj_list[0])
 
@@ -34,15 +32,13 @@ for v in g.adj_list[1:]:
 
 	parents = aux_g.adj_list[v.label-1].adj
 	if len(parents)==2:
-		#print(v, parents)
-		#print(g.adj_list[parents[0].label-1].pi, g.adj_list[parents[1].label-1].pi)
-		#print("===============")
 
-		# se os pais possuem pi, ou seja, antecessor, não nulo, significa que foram percorridos no DFS
+		# the parents having pi not Null means they were runned by DFS
+
 		if None not in (g.adj_list[parents[0].label-1].pi, g.adj_list[parents[1].label-1].pi):
 			print(v)
 
-		## Se um deles for nulo, mas for o próprio 1, e o outro não for nulo, também deve ser impresso
+		# if one of them is null but be the 1 itself, and the other not be null, it must also be printed
 		elif g.adj_list[parents[0].label-1] == g.adj_list[0] and g.adj_list[parents[1].label-1].pi is not None:
 			print(v)
 		elif g.adj_list[parents[1].label-1] == g.adj_list[0] and g.adj_list[parents[0].label-1].pi is not None:

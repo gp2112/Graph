@@ -2,6 +2,8 @@
 #	Guilherme Ramos Costa Paixão - 11796079
 #	Dennis Lemke Green - 112219108
 
+# this program counts how many nodes doesn't have children
+
 import graph
 
 g = graph.read_pajek(input(), directed=True)

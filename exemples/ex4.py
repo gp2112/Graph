@@ -6,6 +6,9 @@ import math
 import graph
 
 
+# this program prints nodes that have the minimum distance from nodes
+# that have both parents descendents being descendents from vertex 1
+
 def transverse_matrix(matrix):
 	for i in range(len(matrix)):
 		for j in range(i):
