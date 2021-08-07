@@ -54,7 +54,7 @@ class Graph:
 			s+='\n'
 		return s
 
-	# cria lista de adjacência com base na matriz de adjacencia
+	# create the adj list given an adj matrix
 	def __get_adj_list(self):
 		adj1 = []
 		for i, v in enumerate(self.adj_matrix):
@@ -66,74 +66,44 @@ class Graph:
 
 		return adj1
 
-	
-
-	# do BFS with a vertex S as origin
-	def __bfs(self, s):
-		if type(s) is int:
-			s = self.adj_list[s-1]
-		for u in self.adj_list:
-			if u != s:
-				u.d = math.inf
-		s.cor = GREY
-		s.d = 0
-		s.pi = None
-		q = deque()
-		q.append(s)
-		while len(q) > 0:
-			u = q.popleft()
-			for v in self.adj_list[u.label-1].adj:
-				if v.cor == WHITE:
-					v.cor = GREY
-					v.d = u.d + 1
-					v.pi = u
-					q.append(v)
-			u.cor = BLACK
-
-
-	def __dfs_visit(self, u, count):
-		count+=1
-		self.time += 1
-		u.d = self.time
-		u.cor = GREY
-		i = 0 #count grey
-
-		# Verifica se possui cíclo
-		# possui ciclo se tiver i=2, ou dois cinzas
-		for v in u.adj:
-			if v.cor == GREY: i+=1
-			if i == 2:
-				self.has_cycle = True
-				break
-
-		for v in u.adj:
-			if v.cor == WHITE:
-				v.pi = u
-				count = self.__dfs_visit(v, count)
-
-		u.cor = BLACK
-		self.time += 1
-		u.f = self.time
-		return count
-
-
-	def dfs(self):
-		for u in self.adj_list:
-			if u.cor == WHITE:
-				self.__dfs_visit(u, 0)
-
-	# retorna o número de componentes do grafo com DFS
-	def componentes(self):
-		c = []
-		for u in self.adj_list:
-			u.pi = None
-		c.append(self.adj_list[0])
-		self.adj_list[0].count = self.__dfs_visit(self.adj_list[0], 0)
+	def bfs(self, source, dest=None):
+		visited = set()
 		for v in self.adj_list:
-			if v.cor != BLACK:
-				v.count = self.__dfs_visit(v, 0)
-				c.append(v)
-		return c
+			v.d = math.inf
+			v.pi = None
+		q = deque()
+		q.append(source)
+		source.d = 0
+
+		while len(q) > 0:
+			v = q.popleft()
+
+			if v == dest:
+				return True
+
+			for u in v.adj:
+				if v.d + 1 < u.d:
+					u.d = v.d + 1
+					u.pi = v
+					q.append(u)
+		return False
+
+	def dfs(self, source, dest=None):
+		visited = set()
+		for v in self.adj_list:
+			v.pi = None
+		s = [source]
+		while len(s) > 0:
+			v = s.pop()
+			if v in visited:
+				continue
+			if v == dest:
+				return True
+			visited.add(v)
+			for u in v.adj:
+				u.pi = v
+				s.append(u)
+		return False
 
 	def weight(self, v, u):
 		return self.adj_matrix[v.label-1][u.label-1]
@@ -232,10 +202,11 @@ def read_pajek(file, directed=False):
 	if type(file) is str:
 		file = open(file, 'r')
 
-	line = file.readline()
+	line = file.readline().strip()
+	
 	v_num = int(line.split(' ')[-1].strip())
 
-	line = file.readline()
+	line = file.readline().strip()
 
 	while line == '\n':
 		line = file.readline()
@@ -243,7 +214,7 @@ def read_pajek(file, directed=False):
 	# cria os vértices
 	matrix = [[0 for j in range(v_num)] for i in range(v_num)]
 
-	line = file.readline().strip().split(' ')
+	line = file.readline().strip().split('    ')
 	while len(line) > 1:
 		edge = (int(line[0])-1, int(line[1])-1)
 
@@ -257,7 +228,7 @@ def read_pajek(file, directed=False):
 			if not directed:
 				matrix[edge[1]][edge[0]] = 1
 
-		line = file.readline().strip().split(' ')
+		line = file.readline().strip().split('    ')
 
 	file.close()
 
