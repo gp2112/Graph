@@ -18,7 +18,7 @@ g = graph.pajek_read(file_name)
 
 ```python
 
-g.bfs(source) # do BFS from vertex Source
+g.bfs(source) # do DFS from vertex Source
 
 g.bfs(source, dest=dest) # do DFS from vertex Source and, 
                           # when it passes throught vertex dest, it returns True and stop the search
@@ -31,7 +31,7 @@ g.bfs(source, dest=dest) # do DFS from vertex Source and,
 
 g.bfs(source) # Do BFS from vertex Source
 
-g.bfs(source, dest=dest) # Do BFS from vertex Source and, as BFS, 
+g.bfs(source, dest=dest) # Do BFS from vertex Source and, as DFS, 
                          # returns True and stop the search when hits vertex dest
 ```
 
